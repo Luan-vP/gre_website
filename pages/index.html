@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/three.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Three.js Project</title>
+  <title>Three.js Landing Page</title>
   <style>
     body {
       margin: 0;
@@ -16,6 +15,87 @@
   </style>
 </head>
 <body>
-  <script type="module" src="/logic.js"></script>
+  <script>
+    // Paste the compiled JavaScript here.
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.146.0/build/three.module.js';
+
+    let scene, camera, renderer;
+    let orbs = [];
+    let raycaster = new THREE.Raycaster();
+    let mouse = new THREE.Vector2();
+
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 5;
+
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      const pointLight = new THREE.PointLight(0xffffff, 1);
+      pointLight.position.set(5, 5, 5);
+      scene.add(pointLight);
+
+      for (let i = 0; i < 10; i++) {
+        const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const material = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(`hsl(${Math.random() * 360}, 100%, 50%)`),
+          emissive: new THREE.Color(0x222222),
+          emissiveIntensity: 0.5,
+        });
+
+        const orb = new THREE.Mesh(geometry, material);
+        orb.position.set(
+          (Math.random() - 0.5) * 10,
+          (Math.random() - 0.5) * 5,
+          (Math.random() - 0.5) * 5
+        );
+        orbs.push(orb);
+        scene.add(orb);
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+
+      animate();
+    }
+
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(orbs);
+
+      orbs.forEach((orb) => {
+        const material = orb.material;
+        material.emissiveIntensity = 0.5;
+        orb.scale.set(1, 1, 1);
+      });
+
+      for (const intersect of intersects) {
+        const orb = intersect.object;
+        const material = orb.material;
+        material.emissiveIntensity = 1;
+        orb.scale.set(1.2, 1.2, 1.2);
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    init();
+  </script>
 </body>
 </html>
